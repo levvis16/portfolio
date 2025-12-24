@@ -1,0 +1,12 @@
+﻿.env
+.vscode/
+ecommerce.db
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env.local
+*.log
+instance/
+*.sqlite3
+.DS_Store
