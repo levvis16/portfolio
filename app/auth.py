@@ -15,6 +15,7 @@ from app.db_depends import get_async_db
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+REFRESH_TOKEN_EXPIRE_DAYS = 7         # New
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/token")
 
 def hash_password(password: str) -> str:
@@ -40,6 +41,17 @@ def create_access_token(data: dict):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+def create_refresh_token(data: dict):
+    """
+    Создаёт refresh-токен с длительным сроком действия и token_type="refresh".
+    """
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    to_encode.update({
+        "exp": expire,
+        "token_type": "refresh",
+    })
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 async def get_current_user(token: str = Depends(oauth2_scheme),
                            db: AsyncSession = Depends(get_async_db)):

@@ -3,6 +3,8 @@ from typing import Optional
 
 from decimal import Decimal
 
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
 
 class CategoryCreate(BaseModel):
     """
