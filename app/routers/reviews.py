@@ -16,42 +16,19 @@ router = APIRouter(
     tags=["reviews"],
 )
 
+from sqlalchemy.sql import func
+
 async def update_product_rating(db: AsyncSession, product_id: int):
-    """
-    Пересчитывает средний рейтинг товара на основе активных отзывов.
-    """
-    rating_query = await db.execute(
-        select(
-            func.avg(ReviewModel.grade).label('avg_rating'),
-            func.count(ReviewModel.id).label('review_count')
-        ).where(
+    result = await db.execute(
+        select(func.avg(ReviewModel.grade)).where(
             ReviewModel.product_id == product_id,
             ReviewModel.is_active == True
         )
     )
-    
-    result = rating_query.first()
-    
-    avg_rating = result[0] if result else None  
-    review_count = result[1] if result else 0   
-    
-    if review_count and review_count > 0 and avg_rating is not None:
-        # Обновляем рейтинг товара
-        await db.execute(
-            update(ProductModel)
-            .where(ProductModel.id == product_id)
-            .values(rating=float(avg_rating))
-        )
-    else:
-        # Если нет отзывов, устанавливаем рейтинг 0
-        await db.execute(
-            update(ProductModel)
-            .where(ProductModel.id == product_id)
-            .values(rating=0.0)
-        )
-    
+    avg_rating = result.scalar() or 0.0
+    product = await db.get(ProductModel, product_id)
+    product.rating = avg_rating
     await db.commit()
-
 
 @router.get('/', response_model=list[ReviewSchema])
 async def get_review(db: AsyncSession = Depends(get_async_db)):
@@ -106,3 +83,24 @@ async def create_review(review_data: ReviewCreate, db: AsyncSession = Depends(ge
     await update_product_rating(db, review_data.product_id)
 
     return new_review
+
+@router.delete('/{review_id}')
+async def delete_review(review_id: int, current_user: UserModel = Depends(get_current_user), db:AsyncSession = Depends(get_async_db)):
+    if current_user.role != 'admin':
+        raise HTTPException(status_code= status.HTTP_403_FORBIDDEN, detail= 'only for admin')
+    
+    review = await db.get(ReviewModel, review_id)
+
+    if not review:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail = 'Review not found')
+    
+    if not review.is_active:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail = 'Review not active')
+    
+    review.is_active = False
+    product_id = review.product_id
+    
+    await db.commit()
+    await update_product_rating(db, product_id)
+
+    return {'message': 'Review deleted'}
