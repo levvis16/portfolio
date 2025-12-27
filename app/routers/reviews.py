@@ -72,7 +72,7 @@ async def create_review(review_data: ReviewCreate, db: AsyncSession = Depends(ge
         product_id = review_data.product_id,
         comment = review_data.comment,
         grade = review_data.grade,
-        comment_date=datetime.now(timezone.utc),
+        comment_date=datetime.now(), 
         is_active = True
     )
 
