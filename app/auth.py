@@ -5,9 +5,9 @@ import jwt
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-
-from app.models.users import User as UserModel
 from app.config import SECRET_KEY, ALGORITHM
+from app.models.users import User as UserModel
+
 from app.db_depends import get_async_db
 
 
