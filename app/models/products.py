@@ -1,8 +1,8 @@
 from decimal import Decimal
-from sqlalchemy import String, Boolean, Integer, Numeric
+from sqlalchemy import String, Boolean, Integer, Numeric, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey
-
+from typing import Optional
 from app.database import Base
 from app.models import Category
 class Product(Base):
@@ -20,5 +20,5 @@ class Product(Base):
 
     category: Mapped["Category"] = relationship("Category", back_populates="products")
     seller = relationship("User", back_populates="products")  # New
-
+    rating: Mapped[Optional[float]] = mapped_column(Float, default=0.0, nullable=True)
 
