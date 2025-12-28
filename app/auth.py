@@ -1,7 +1,7 @@
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta, timezone
-import jwt
+from jose import jwt
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -95,7 +95,7 @@ async def get_current_user(
     
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
+        email: str = payload.get("sub") # type: ignore
         
         # Проверяем тип токена (должен быть access)
         token_type = payload.get("token_type")
@@ -109,13 +109,13 @@ async def get_current_user(
         if email is None:
             raise credentials_exception
             
-    except jwt.ExpiredSignatureError:
+    except jwt.ExpiredSignatureError: # type: ignore
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    except jwt.InvalidTokenError:
+    except jwt.InvalidTokenError: # type: ignore
         raise credentials_exception
     except Exception as e:
         logger.error(f"Token validation error: {e}")
@@ -190,12 +190,12 @@ def refresh_access_token(refresh_token: str):
         new_access_token = create_access_token({"sub": email})
         return new_access_token
         
-    except jwt.ExpiredSignatureError:
+    except jwt.ExpiredSignatureError: # type: ignore
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Refresh token has expired"
         )
-    except jwt.InvalidTokenError:
+    except jwt.InvalidTokenError: # type: ignore
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token"

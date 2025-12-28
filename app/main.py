@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.routers import cart, categories, products, users, reviews  # New
+from app.routers import cart, categories, orders, products, users, reviews
 
 # Создаём приложение FastAPI
 app = FastAPI(
@@ -14,6 +14,7 @@ app.include_router(products.router)
 app.include_router(users.router)   # New
 app.include_router(reviews.router)
 app.include_router(cart.router)
+app.include_router(orders.router)
 
 # Корневой эндпоинт для проверки
 @app.get("/")
