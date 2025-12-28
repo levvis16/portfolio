@@ -1,32 +1,28 @@
-from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Optional
-from sqlalchemy import ForeignKey, String, DateTime, Boolean, CheckConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Column, Integer, Text, DateTime, Boolean, ForeignKey, CheckConstraint
+from sqlalchemy.orm import relationship
 from app.database import Base
+from datetime import datetime
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.models.users import User
     from app.models.products import Product
 
 class Review(Base):
-    __tablename__ = 'reviews'
-    
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
-    product_id: Mapped[int] = mapped_column(ForeignKey('products.id'), nullable=False)
-    comment: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    comment_date: Mapped[datetime] = mapped_column(
-    DateTime(timezone=False),  
-    default=datetime.now,      
-    nullable=False
-    )
-    grade: Mapped[int] = mapped_column(nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    __tablename__ = "reviews"
 
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=True)
+    comment = Column(Text, nullable=True)
+    comment_date = Column(DateTime, default=lambda: datetime.utcnow())
+    grade = Column(Integer, nullable=False)
+    is_active = Column(Boolean, default=True)
     
-    user: Mapped['User'] = relationship(back_populates='reviews')
-    product: Mapped['Product'] = relationship(back_populates='reviews')
+    # Отношения
+    user = relationship("User", back_populates="reviews")
+    product = relationship("Product", back_populates="reviews")  # эта строка важна
     
     __table_args__ = (
-        CheckConstraint('grade >= 1 AND grade <= 5', name='check_grade_range'),
+        CheckConstraint("grade >= 1 AND grade <= 5", name="reviews_grade_check"),
     )

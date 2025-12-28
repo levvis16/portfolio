@@ -6,6 +6,7 @@ from app.database import Base
 if TYPE_CHECKING:
     from app.models.reviews import Review
     from app.models.products import Product
+    from app.models.cart_items import CartItem
 
 class User(Base):
     __tablename__ = "users"
@@ -19,3 +20,4 @@ class User(Base):
     # Строковые аннотации вместо прямых импортов
     reviews: Mapped[List["Review"]] = relationship('Review', back_populates='user')
     products: Mapped[List["Product"]] = relationship("Product", back_populates="seller")
+    cart_items: Mapped[list["CartItem"]] = relationship("CartItem", back_populates="user", cascade="all, delete-orphan")
