@@ -16,14 +16,14 @@ class Review(Base):
     product_id: Mapped[int] = mapped_column(ForeignKey('products.id'), nullable=False)
     comment: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     comment_date: Mapped[datetime] = mapped_column(
-    DateTime(timezone=False),  # БЕЗ часового пояса
-    default=datetime.now,      # Локальное время сервера
+    DateTime(timezone=False),  
+    default=datetime.now,      
     nullable=False
     )
     grade: Mapped[int] = mapped_column(nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    # Строковые аннотации
+    
     user: Mapped['User'] = relationship(back_populates='reviews')
     product: Mapped['Product'] = relationship(back_populates='reviews')
     
