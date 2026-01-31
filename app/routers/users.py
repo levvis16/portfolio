@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.models.users import User as UserModel
 from app.schemas import UserCreate, User as UserSchema
 from app.db_depends import get_async_db
-from app.auth import hash_password, verify_password, create_access_token, create_refresh_token # New
+from app.auth import hash_password, verify_password, create_access_token, create_refresh_token 
 import jwt
 
 from app.config import SECRET_KEY, ALGORITHM
@@ -20,26 +20,23 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_async_db)
     """
     Регистрирует нового пользователя с ролью 'buyer' или 'seller'.
     """
-    # Проверка уникальности email
     result = await db.scalars(select(UserModel).where(UserModel.email == user.email))
     if result.first():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Email already registered")
 
-    # Создание объекта пользователя с хешированным паролем
     db_user = UserModel(
         email=user.email,
         hashed_password=hash_password(user.password),
         role=user.role
     )
 
-    # Добавление в сессию и сохранение в базе
     db.add(db_user)
     await db.commit()
     return db_user
 
 
-@router.post("/token")                                                                # New
+@router.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_async_db)):
     """
     Аутентифицирует пользователя и возвращает access_token и refresh_token.
@@ -75,22 +72,18 @@ async def refresh_token(
     old_refresh_token = body.refresh_token
 
     try:
-        payload = jwt.decode(old_refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(old_refresh_token, SECRET_KEY, algorithms=[ALGORITHM]) # type: ignore
         email: str | None = payload.get("sub")
         token_type: str | None = payload.get("token_type")
 
-        # Проверяем, что токен действительно refresh
         if email is None or token_type != "refresh":
             raise credentials_exception
 
-    except jwt.ExpiredSignatureError:
-        # refresh-токен истёк
+    except jwt.ExpiredSignatureError: # type: ignore
         raise credentials_exception
-    except jwt.PyJWTError:
-        # подпись неверна или токен повреждён
+    except jwt.PyJWTError: # type: ignore
         raise credentials_exception
 
-    # Проверяем, что пользователь существует и активен
     result = await db.scalars(
         select(UserModel).where(
             UserModel.email == email,
@@ -101,7 +94,6 @@ async def refresh_token(
     if user is None:
         raise credentials_exception
 
-    # Генерируем новый refresh-токен
     new_refresh_token = create_refresh_token(
         data={"sub": user.email, "role": user.role, "id": user.id}
     )

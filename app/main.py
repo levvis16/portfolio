@@ -4,7 +4,7 @@ from app.routers import cart, categories, orders, products, users, reviews
 from loguru import logger
 
 logger.add("info.log", format="Log: [{extra[log_id]}:{time} - {level} - {message}]", level="INFO", enqueue = True)
-# Создаём приложение FastAPI
+
 app = FastAPI(
     title="FastAPI Интернет-магазин",
     version="0.1.0",
@@ -31,15 +31,13 @@ async def log_middleware(request: Request, call_next):
         return response
 
 app.mount("/media", StaticFiles(directory="media"), name="media")
-# Подключаем маршруты категорий и товаров
 app.include_router(categories.router)
 app.include_router(products.router)
-app.include_router(users.router)   # New
+app.include_router(users.router)   
 app.include_router(reviews.router)
 app.include_router(cart.router)
 app.include_router(orders.router)
 
-# Корневой эндпоинт для проверки
 @app.get("/")
 async def root():
     """
