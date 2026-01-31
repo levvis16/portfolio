@@ -10,10 +10,8 @@ from app.models.users import User as UserModel
 from app.db_depends import get_async_db
 import logging
 
-# Настройка логгера
 logger = logging.getLogger(__name__)
 
-# Создаём контекст для хеширования с использованием bcrypt
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -25,25 +23,20 @@ def hash_password(password: str) -> str:
     Преобразует пароль в хеш с использованием bcrypt.
     Ограничение bcrypt: пароль не более 72 байт.
     """
-    # Конвертируем строку в байты
     password_bytes = password.encode('utf-8')
     
-    # Обрезаем до 72 байт если нужно
     if len(password_bytes) > 72:
         logger.warning(f"Password too long ({len(password_bytes)} bytes), truncating to 72 bytes")
         password_bytes = password_bytes[:72]
     
-    # Хешируем
     return pwd_context.hash(password_bytes)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Проверяет, соответствует ли введённый пароль сохранённому хешу.
     """
-    # Конвертируем строку в байты
     plain_password_bytes = plain_password.encode('utf-8')
     
-    # Обрезаем до 72 байт если нужно
     if len(plain_password_bytes) > 72:
         plain_password_bytes = plain_password_bytes[:72]
     
@@ -97,7 +90,6 @@ async def get_current_user(
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub") # type: ignore
         
-        # Проверяем тип токена (должен быть access)
         token_type = payload.get("token_type")
         if token_type != "access":
             raise HTTPException(
@@ -121,7 +113,6 @@ async def get_current_user(
         logger.error(f"Token validation error: {e}")
         raise credentials_exception
     
-    # Ищем пользователя в базе
     try:
         result = await db.execute(
             select(UserModel).where(
@@ -164,7 +155,6 @@ async def get_current_buyer(current_user: UserModel = Depends(get_current_user))
         )
     return current_user
 
-# Функция для рефреша токена
 def refresh_access_token(refresh_token: str):
     """
     Создаёт новый access токен на основе валидного refresh токена.
@@ -172,7 +162,6 @@ def refresh_access_token(refresh_token: str):
     try:
         payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
         
-        # Проверяем что это refresh токен
         if payload.get("token_type") != "refresh":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -186,7 +175,6 @@ def refresh_access_token(refresh_token: str):
                 detail="Invalid refresh token"
             )
         
-        # Создаём новый access токен
         new_access_token = create_access_token({"sub": email})
         return new_access_token
         
