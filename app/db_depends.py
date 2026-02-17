@@ -11,7 +11,6 @@ async def get_db():
         db.close()
 
 
-# --------------- Асинхронная сессия -------------------------
 
 from collections.abc import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession
