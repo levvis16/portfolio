@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from decimal import Decimal
 from sqlalchemy import String, Boolean, Integer, Numeric, Computed, Index
 from sqlalchemy.dialects.postgresql import TSVECTOR
@@ -5,13 +7,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey
 from app.database import Base
 from typing import TYPE_CHECKING, Optional, List
-
 if TYPE_CHECKING:
     from app.models.categories import Category
     from app.models.users import User
     from app.models.reviews import Review
     from app.models.cart_items import CartItem
     from app.models.orders import OrderItem
+    
 class Product(Base):
     __tablename__ = "products"
 
@@ -43,7 +45,6 @@ class Product(Base):
     order_items: Mapped[list["OrderItem"]] = relationship("OrderItem", back_populates="product")
     seller = relationship("User", back_populates="products")
     
-    # ДОБАВЬ ЭТУ СТРОКУ:
     reviews: Mapped[List["Review"]] = relationship("Review", back_populates="product")
 
     __table_args__ = (

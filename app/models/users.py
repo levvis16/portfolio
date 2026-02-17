@@ -15,9 +15,8 @@ class User(Base):
     email: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    role: Mapped[str] = mapped_column(String, default="buyer")  # "buyer" or "seller"
+    role: Mapped[str] = mapped_column(String, default="buyer")  
     
-    # Строковые аннотации вместо прямых импортов
     reviews: Mapped[List["Review"]] = relationship('Review', back_populates='user')
     products: Mapped[List["Product"]] = relationship("Product", back_populates="seller")
     cart_items: Mapped[list["CartItem"]] = relationship("CartItem", back_populates="user", cascade="all, delete-orphan")
